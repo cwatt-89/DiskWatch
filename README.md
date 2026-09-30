@@ -1,6 +1,6 @@
 # DiskWatch.
 
-A TreeSize-style disk usage analyzer and cleaner, for **macOS** and **Windows**, built to the
+A usage analyzer and cleaner, for **macOS** and **Windows**, built to the
 FloydNet Terminal design system: black ground, hairline compartments, zero radius, one green accent,
 stretched Times New Roman over monospace.
 
