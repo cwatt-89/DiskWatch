@@ -1,0 +1,29 @@
+name: macOS build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build DiskWatch.app
+        working-directory: macos
+        run: ./scripts/build.sh
+      - name: Zip app
+        working-directory: macos/build
+        run: ditto -c -k --keepParent DiskWatch.app DiskWatch-macos.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DiskWatch-macos
+          path: macos/build/DiskWatch-macos.zip
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: macos/build/DiskWatch-macos.zip

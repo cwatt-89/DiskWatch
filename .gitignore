@@ -1,0 +1,11 @@
+# macOS (SwiftPM)
+macos/.build/
+macos/build/
+.DS_Store
+
+# Windows (.NET)
+windows/bin/
+windows/obj/
+windows/publish/
+*.user
+.vs/

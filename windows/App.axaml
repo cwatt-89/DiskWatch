@@ -1,0 +1,159 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="using:DiskWatch.UI"
+             x:Class="DiskWatch.App"
+             RequestedThemeVariant="Dark">
+  <Application.Styles>
+    <FluentTheme />
+
+    <!-- Global: mono, sharp corners, black ground -->
+    <Style Selector="Window">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, SF Mono, Menlo, monospace" />
+    </Style>
+
+    <!-- Class-driven text colors (so rows can invert when selected) -->
+    <Style Selector="TextBlock.fg"><Setter Property="Foreground" Value="#F2F2F2" /></Style>
+    <Style Selector="TextBlock.muted"><Setter Property="Foreground" Value="#8A8A8A" /></Style>
+    <Style Selector="TextBlock.warntext"><Setter Property="Foreground" Value="#D1901F" /></Style>
+    <Style Selector="Path.icon.muted"><Setter Property="Stroke" Value="#8A8A8A" /></Style>
+    <Style Selector="Path.icon.fg"><Setter Property="Stroke" Value="#F2F2F2" /></Style>
+    <Style Selector="Path.icon.accent"><Setter Property="Stroke" Value="#17D97A" /></Style>
+    <Style Selector="Path.icon.warn"><Setter Property="Stroke" Value="#D1901F" /></Style>
+
+    <!-- Pill -->
+    <Style Selector="Border.pill">
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Padding" Value="8,3" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="#444444" />
+    </Style>
+    <Style Selector="Border.pill TextBlock.pilltext"><Setter Property="Foreground" Value="#8A8A8A" /></Style>
+    <Style Selector="Border.pill.normal"><Setter Property="BorderBrush" Value="#F2F2F2" /></Style>
+    <Style Selector="Border.pill.normal TextBlock.pilltext"><Setter Property="Foreground" Value="#F2F2F2" /></Style>
+    <Style Selector="Border.pill.ok"><Setter Property="BorderBrush" Value="#17D97A" /></Style>
+    <Style Selector="Border.pill.ok TextBlock.pilltext"><Setter Property="Foreground" Value="#17D97A" /></Style>
+    <Style Selector="Border.pill.warn"><Setter Property="BorderBrush" Value="#D1901F" /></Style>
+    <Style Selector="Border.pill.warn TextBlock.pilltext"><Setter Property="Foreground" Value="#D1901F" /></Style>
+    <Style Selector="Border.pill.danger">
+      <Setter Property="BorderBrush" Value="#FF3B30" />
+      <Setter Property="Background" Value="#FF3B30" />
+    </Style>
+    <Style Selector="Border.pill.danger TextBlock.pilltext"><Setter Property="Foreground" Value="#000000" /></Style>
+
+    <!-- Lists: rows are flat; selection inverts the row to accent -->
+    <Style Selector="ListBox">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <Style Selector="ListBoxItem /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#111111" />
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#17D97A" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#17D97A" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:focus /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#17D97A" />
+    </Style>
+    <Style Selector="ListBoxItem:selected:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#17D97A" />
+    </Style>
+    <Style Selector="ListBoxItem:selected TextBlock"><Setter Property="Foreground" Value="#000000" /></Style>
+    <Style Selector="ListBoxItem:selected Path.icon"><Setter Property="Stroke" Value="#000000" /></Style>
+    <Style Selector="ListBoxItem:selected Border.pill">
+      <Setter Property="BorderBrush" Value="#000000" />
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="ListBoxItem:selected Border.pill TextBlock.pilltext"><Setter Property="Foreground" Value="#000000" /></Style>
+    <Style Selector="ListBoxItem:selected ui|Bar"><Setter Property="Selected" Value="True" /></Style>
+    <Style Selector="ListBoxItem:selected Border.swatch"><Setter Property="BorderBrush" Value="#000000" /></Style>
+
+    <!-- Text boxes: sharp, hair outline, accent when focused -->
+    <Style Selector="TextBox">
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="BorderBrush" Value="#444444" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="Foreground" Value="#F2F2F2" />
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, SF Mono, Menlo, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="MinHeight" Value="30" />
+      <Setter Property="Padding" Value="10,6" />
+      <Setter Property="SelectionBrush" Value="#0E8A4F" />
+      <Setter Property="CaretBrush" Value="#17D97A" />
+    </Style>
+    <Style Selector="TextBox:disabled /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="BorderBrush" Value="#2A2A2A" />
+    </Style>
+    <Style Selector="TextBox /template/ TextBlock#PART_Watermark"><Setter Property="Foreground" Value="#8A8A8A" /></Style>
+    <Style Selector="TextBox:pointerover /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="BorderBrush" Value="#8A8A8A" />
+    </Style>
+    <Style Selector="TextBox:focus /template/ Border#PART_BorderElement">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="BorderBrush" Value="#17D97A" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- Menus & tooltips -->
+    <Style Selector="MenuFlyoutPresenter, ContextMenu">
+      <Setter Property="Background" Value="#060606" />
+      <Setter Property="BorderBrush" Value="#444444" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Padding" Value="0,4" />
+    </Style>
+    <Style Selector="MenuItem">
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, SF Mono, Menlo, monospace" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="Foreground" Value="#F2F2F2" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="#17D97A" />
+    </Style>
+    <Style Selector="MenuItem:pointerover /template/ ContentPresenter#PART_HeaderPresenter">
+      <Setter Property="Foreground" Value="#000000" />
+    </Style>
+    <Style Selector="MenuItem:disabled /template/ ContentPresenter#PART_HeaderPresenter">
+      <Setter Property="Foreground" Value="#8A8A8A" />
+    </Style>
+    <Style Selector="Separator">
+      <Setter Property="Background" Value="#2A2A2A" />
+      <Setter Property="Margin" Value="0,4" />
+    </Style>
+    <Style Selector="ToolTip">
+      <Setter Property="Background" Value="#000000" />
+      <Setter Property="BorderBrush" Value="#444444" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Foreground" Value="#F2F2F2" />
+      <Setter Property="FontFamily" Value="Cascadia Mono, Consolas, SF Mono, Menlo, monospace" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+
+    <!-- Scrollbars: thin, square -->
+    <Style Selector="ScrollBar /template/ Thumb">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="Thumb">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+  </Application.Styles>
+</Application>
