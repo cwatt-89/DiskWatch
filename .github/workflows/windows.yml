@@ -7,6 +7,9 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: write  # attach build files to releases
+
 jobs:
   build:
     runs-on: windows-latest

@@ -8,7 +8,27 @@ stretched Times New Roman over monospace.
 |---|---|---|
 | Source | [`macos/`](macos) — Swift, SwiftUI + AppKit | [`windows/`](windows) — C#, .NET 10 + Avalonia |
 | Admin rights | Asks for your password every launch, relaunches as root | UAC prompt every launch (`requireAdministrator` manifest) |
-| Download | Actions → *macOS build* → `DiskWatch-macos` | Actions → *Windows build* → `DiskWatch-windows-x64` |
+| Download | [`DiskWatch-macos.zip`](https://github.com/cwatt-89/DiskWatch/releases/latest) | [`DiskWatch.exe`](https://github.com/cwatt-89/DiskWatch/releases/latest) |
+
+## Install
+
+Download from the [latest release](https://github.com/cwatt-89/DiskWatch/releases/latest).
+
+### Windows 10 / 11
+
+1. Download **`DiskWatch.exe`** and put it anywhere (e.g. a `DiskWatch` folder in Documents). There's no installer — the exe is the whole app.
+2. Double-click it and choose **Yes** at the administrator (UAC) prompt. It asks every launch.
+3. First launch only: if SmartScreen says *"Windows protected your PC"*, click **More info → Run anyway** (the app isn't code-signed).
+4. Optional: right-click the exe → **Pin to Start** / **Pin to taskbar**.
+
+### macOS 14 or later
+
+1. Download **`DiskWatch-macos.zip`**, double-click to unzip, and drag **DiskWatch.app** into **Applications**.
+2. Open it. The first time, macOS blocks it because it isn't signed with an Apple Developer ID: click **Done**, open
+   **System Settings → Privacy & Security**, scroll down and click **Open Anyway**, then confirm.
+3. Enter your Mac password at DiskWatch's administrator prompt. It asks every launch.
+4. Recommended: **System Settings → Privacy & Security → Full Disk Access** → turn on **DiskWatch**, then reopen it.
+   Without this, Mail, Messages, Safari and some app data can't be measured or cleaned.
 
 ## Features (both platforms)
 
