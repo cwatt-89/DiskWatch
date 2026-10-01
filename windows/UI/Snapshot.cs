@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using DiskWatch.Core;
 
 namespace DiskWatch.UI;
@@ -17,6 +18,11 @@ public static class Snapshot
         var dir = Environment.GetEnvironmentVariable("DISKWATCH_SNAPSHOT");
         if (dir == null) return;
         var path = Environment.GetEnvironmentVariable("DISKWATCH_SNAPSHOT_PATH") ?? Path.Join(Platform.Home, "Dev");
+        if (Environment.GetEnvironmentVariable("DISKWATCH_SNAPSHOT_DELETE") is string sandbox)
+        {
+            _ = DeleteFlow(w, s, dir, sandbox).ContinueWith(t => { if (t.Exception != null) Console.Error.WriteLine("DELETE TEST FAILED: " + t.Exception); });
+            return;
+        }
         _ = Run(w, s, dir, path).ContinueWith(t => { if (t.Exception != null) Console.Error.WriteLine("SNAPSHOT FAILED: " + t.Exception); });
     }
 
@@ -46,6 +52,39 @@ public static class Snapshot
         Capture(w, dir, "3-delete");
         s.CloseDeletion();
         await Task.Delay(300);
+        w.Close();
+    }
+
+    /// <summary>
+    /// Deletes a throwaway file through the real confirmation dialog and captures each step:
+    /// confirm → result → after "Done". <paramref name="sandbox"/> must be a disposable folder.
+    /// </summary>
+    private static async Task DeleteFlow(Window w, AppState s, string dir, string sandbox)
+    {
+        Directory.CreateDirectory(dir);
+        Directory.CreateDirectory(sandbox);
+        var victim = Path.Join(sandbox, "delete-me.bin");
+        File.WriteAllBytes(victim, new byte[200_000]);
+        File.WriteAllBytes(Path.Join(sandbox, "keep-me.bin"), new byte[100_000]);
+        await Task.Delay(800);
+        s.Scan(sandbox);
+        while (s.IsScanning) await Task.Delay(100);
+        await Task.Delay(500);
+        s.SetTab(Tab.Files);
+        var node = s.Root!.Find(victim)!;
+        s.RequestDelete(new[] { node }, permanent: true);
+        await Task.Delay(600);
+        Capture(w, dir, "d1-confirm");
+        var dialog = w.GetVisualDescendants().OfType<DeleteDialog>().First();
+        dialog.ConfirmForTest();
+        await Task.Delay(2500);
+        Capture(w, dir, "d2-after-delete");
+        var open = w.GetVisualDescendants().OfType<DeleteDialog>().ToList();
+        Console.WriteLine($"file deleted: {!File.Exists(victim)}; dialogs open after delete: {open.Count}; same instance: {open.Count == 1 && ReferenceEquals(open[0], dialog)}");
+        s.CloseDeletion();
+        await Task.Delay(600);
+        Capture(w, dir, "d3-after-done");
+        Console.WriteLine($"dialogs open after Done: {w.GetVisualDescendants().OfType<DeleteDialog>().Count()}");
         w.Close();
     }
 

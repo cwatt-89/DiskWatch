@@ -23,6 +23,8 @@ public sealed class MainWindow : Window
     private FileNode? _viewsRoot;
     private TextBox? _search;
     private ScanOverlay? _scanOverlay;
+    private DeletionRequest? _shownDeletion;
+    private Control? _modal;
     private readonly DispatcherTimer _debounce = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private Topic _pending;
 
@@ -151,8 +153,15 @@ public sealed class MainWindow : Window
         }
         else
         {
+            bool wasScanning = _scanOverlay != null;
             _scanOverlay = null;
-            _overlay.Content = S.Deletion != null ? Modal(new DeleteDialog(S, S.Deletion), 660) : null;
+            // Recreating the dialog on every update would throw away its "Done" screen (and any typed
+            // confirmation), so only swap it when the request itself opens, closes or changes.
+            if (wasScanning || !ReferenceEquals(S.Deletion, _shownDeletion))
+            {
+                _shownDeletion = S.Deletion;
+                _overlay.Content = S.Deletion != null ? Modal(new DeleteDialog(S, S.Deletion), 660) : _modal;
+            }
         }
         if (t.HasFlag(Topic.Error) && S.ErrorMessage != null) ShowError(S.ErrorMessage);
     }
@@ -174,8 +183,17 @@ public sealed class MainWindow : Window
         return v;
     }
 
-    public void ShowModal(Control content, double width) => _overlay.Content = Modal(content, width);
-    public void CloseModal() => _overlay.Content = null;
+    public void ShowModal(Control content, double width)
+    {
+        _modal = Modal(content, width);
+        if (S.Deletion == null && !S.IsScanning) _overlay.Content = _modal;
+    }
+
+    public void CloseModal()
+    {
+        _modal = null;
+        if (S.Deletion == null && !S.IsScanning) _overlay.Content = null;
+    }
 
     public static Control Modal(Control content, double width)
     {
@@ -196,8 +214,8 @@ public sealed class MainWindow : Window
     private void ShowError(string msg)
     {
         S.ErrorMessage = null;
-        var ok = FN.Button("OK", FNButton.Kind.Primary, () => _overlay.Content = null);
-        _overlay.Content = Modal(FN.V(FN.S5, FN.SectionHeading("DiskWatch"), FN.Caption(msg, FN.Fg), new Border { Child = ok, HorizontalAlignment = HorizontalAlignment.Right }), 480);
+        var ok = FN.Button("OK", FNButton.Kind.Primary, CloseModal);
+        ShowModal(FN.V(FN.S5, FN.SectionHeading("DiskWatch"), FN.Caption(msg, FN.Fg), new Border { Child = ok, HorizontalAlignment = HorizontalAlignment.Right }), 480);
     }
 
     // MARK: Keyboard

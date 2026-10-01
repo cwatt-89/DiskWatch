@@ -33,7 +33,7 @@ public sealed class FilesView : DockPanel, IView
         _list = new ListBox
         {
             SelectionMode = SelectionMode.Multiple,
-            ItemTemplate = new FuncDataTemplate<FileNode>((n, _) => BuildRow(n)),
+            ItemTemplate = new FuncDataTemplate<FileNode>((n, _) => n is null ? new Border() : BuildRow(n)),
         };
         _list.SelectionChanged += (_, _) =>
         {

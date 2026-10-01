@@ -95,6 +95,14 @@ public sealed class DeleteDialog : ContentControl
         return stack;
     }
 
+    /// <summary>Test hook (snapshot driver): tick the acknowledgment and press the delete button.</summary>
+    internal void ConfirmForTest()
+    {
+        _acknowledged = true;
+        Rebuild();
+        Go();
+    }
+
     private async void Go()
     {
         if (!CanProceed) return;

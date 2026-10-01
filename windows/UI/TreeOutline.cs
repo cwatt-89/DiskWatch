@@ -88,7 +88,7 @@ public sealed class TreeOutline : DockPanel, IView
         {
             ItemsSource = _rows,
             SelectionMode = SelectionMode.Multiple,
-            ItemTemplate = new FuncDataTemplate<Row>((r, _) => BuildRow(r)),
+            ItemTemplate = new FuncDataTemplate<Row>((r, _) => r is null ? new Border() : BuildRow(r)),
         };
         _list.SelectionChanged += (_, _) =>
         {
