@@ -5,6 +5,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.appearance = NSAppearance(named: .darkAqua)
+        if Elevation.testRelaunch {
+            // Launch tests: open on a secondary display and never steal focus.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { AppDelegate.moveToSecondaryDisplay() }
+            return
+        }
         NSApp.activate(ignoringOtherApps: true)
         DispatchQueue.main.async {
             for w in NSApp.windows {
@@ -12,10 +17,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 w.backgroundColor = FN.NS.bg
             }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             NSApp.activate(ignoringOtherApps: true)
-            Elevation.signalReady()
+            Elevation.signalReadyWhenVisible()
         }
+    }
+
+    @MainActor static func moveToSecondaryDisplay() {
+        let screens = NSScreen.screens
+        if let target = screens.dropFirst().first {
+            for w in NSApp.windows where w.frame.width > 300 {
+                w.setFrame(NSRect(x: target.visibleFrame.minX + 40, y: target.visibleFrame.minY + 40,
+                                  width: min(w.frame.width, target.visibleFrame.width - 80),
+                                  height: min(w.frame.height, target.visibleFrame.height - 80)), display: true)
+            }
+        }
+        Elevation.signalReadyWhenVisible()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }

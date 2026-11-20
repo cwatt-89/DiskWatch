@@ -85,8 +85,14 @@ enum Elevation {
     enum Outcome { case relaunched, cancelled, failed(String) }
 
     /// Written by the elevated copy once its window is up; the launching copy waits for it before quitting.
-    static var readyPath: String { "/private/tmp/com.carterwatt.DiskWatch.\(RealUser.uid).ready" }
-    static var launchLogPath: String { "/private/tmp/com.carterwatt.DiskWatch.\(RealUser.uid).launch.log" }
+    /// Unique per launch, so a root-owned file left by an earlier attempt can never block or fool a new one.
+    static let launchToken: String = {
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--token"), i + 1 < args.count { return args[i + 1] }
+        return String(UUID().uuidString.prefix(8))
+    }()
+    static var readyPath: String { "/private/tmp/com.carterwatt.DiskWatch.\(RealUser.uid).\(launchToken).ready" }
+    static var launchLogPath: String { "/private/tmp/com.carterwatt.DiskWatch.\(RealUser.uid).\(launchToken).launch.log" }
 
     /// `DiskWatch --detach …` — leave the launching app's process group/session, then become the real app.
     /// Without this, launchd kills the elevated copy the moment the original (non-root) copy quits.
@@ -101,11 +107,30 @@ enum Elevation {
         exit(1)
     }
 
-    /// Called by the elevated copy after launch.
-    static func signalReady() {
+    static let failurePrefix = "fail:"
+
+    /// Called by the elevated copy after launch: reports "ready" only once its window is actually on
+    /// screen. If macOS never shows it, reports why and quits, so no invisible copy is left running.
+    @MainActor
+    static func signalReadyWhenVisible() {
         guard launchedElevated, RealUser.isRoot || testRelaunch else { return }
-        unlink(readyPath)
-        FileManager.default.createFile(atPath: readyPath, contents: Data("\(getpid())".utf8))
+        let start = Date()
+        func write(_ s: String) {
+            unlink(readyPath)
+            FileManager.default.createFile(atPath: readyPath, contents: Data(s.utf8))
+        }
+        func check() {
+            let visible = NSApp.windows.contains { $0.isVisible && $0.occlusionState.contains(.visible) && $0.frame.width > 300 }
+            if visible {
+                write("\(getpid())")
+            } else if Date().timeIntervalSince(start) > 10 {
+                write(failurePrefix + "DiskWatch started as administrator, but macOS didn't let it show its window.")
+                NSApp.terminate(nil)
+            } else {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { check() }
+            }
+        }
+        check()
     }
 
     /// Ask for an admin password, start a detached root copy of ourselves, and wait until it's running.
@@ -114,7 +139,9 @@ enum Elevation {
         func q(_ s: String) -> String { "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'" }
         unlink(readyPath)
         let started = Date().timeIntervalSince1970 - 1
-        let cmd = "\(q(exe)) --detach --uid \(getuid()) </dev/null >\(q(launchLogPath)) 2>&1 &"
+        // `launchctl asuser` attaches the root copy to this user's login session. Without it, macOS 27's
+        // admin helper starts it in the system domain, where it runs but can never show a window.
+        let cmd = "/bin/launchctl asuser \(getuid()) \(q(exe)) --detach --uid \(getuid()) --token \(launchToken) </dev/null >\(q(launchLogPath)) 2>&1 &"
 
         if testRelaunch {
             let r = shell("/bin/sh", ["-c", cmd])
@@ -136,12 +163,14 @@ enum Elevation {
             }
         }
 
-        // Wait (up to ~10 s) for the elevated copy to report that it's up.
-        let deadline = Date().addingTimeInterval(10)
+        // Wait for the elevated copy to report that its window is on screen (it gives up itself after ~10 s).
+        let deadline = Date().addingTimeInterval(20)
         while Date() < deadline {
             var st = stat()
             if lstat(readyPath, &st) == 0 && (st.st_uid == 0 || testRelaunch) && Double(st.st_mtimespec.tv_sec) >= started {
-                return .relaunched
+                let content = (try? String(contentsOfFile: readyPath, encoding: .utf8)) ?? ""
+                if content.hasPrefix(failurePrefix) { return .failed(String(content.dropFirst(failurePrefix.count))) }
+                if !content.isEmpty { return .relaunched }
             }
             RunLoop.current.run(until: Date().addingTimeInterval(0.1))
         }
